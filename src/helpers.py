@@ -2,10 +2,10 @@ import pickle
 import os
 
 
-def store_pickle(object, file_path):
+def store_pickle(obj, file_path):
     print("Storing pickle:", file_path)
     with open(file_path, "wb") as handle:
-        pickle.dump(object, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(obj, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def load_pickle(file_path):
