@@ -17,3 +17,11 @@ def load_pickle(file_path):
             return dic
     else:
         return FileNotFoundError
+
+
+# creates absolute path
+def abspath(path, *paths):
+    fpath = os.path.join(os.getcwd(), os.pardir, path)
+    for p in paths:
+        fpath = os.path.join(fpath, p)
+    return fpath
