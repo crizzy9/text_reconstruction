@@ -8,3 +8,4 @@ dataset/
 *.index
 out/
 __pycache__
+model/
