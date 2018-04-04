@@ -3,7 +3,7 @@ import os
 # from os import listdir
 # from os.path import isfile, join
 from src.utils import store_pickle, load_pickle, abspath
-from nltk import sent_tokenize, word_tokenize
+from nltk import word_tokenize
 from collections import Counter
 from src.constants import *
 
@@ -19,27 +19,27 @@ class Parser:
         self.min_freq = min_freq
         print('Enter init...')
 
-        if not os.path.isfile(abspath('out', 'parsed_files_fetch_data.pickle')):
+        if not os.path.isfile(abspath(OUTPUT_DIR, 'parsed_files_fetch_data.pickle')):
             self.fetch_data()
-        parsed_files = load_pickle(abspath('out', 'parsed_files_fetch_data.pickle'))
+        parsed_files = load_pickle(abspath(OUTPUT_DIR, 'parsed_files_fetch_data.pickle'))
 
-        if not os.path.isfile(abspath('out', 'parsed_files_clean_data.pickle')):
+        if not os.path.isfile(abspath(OUTPUT_DIR, 'parsed_files_clean_data.pickle')):
             self.clean_data(parsed_files)
-        parsed_files = load_pickle(abspath('out', 'parsed_files_clean_data.pickle'))
+        parsed_files = load_pickle(abspath(OUTPUT_DIR, 'parsed_files_clean_data.pickle'))
 
-        if not os.path.isfile(abspath('out', 'vocab_list.pickle')):
+        if not os.path.isfile(abspath(OUTPUT_DIR, 'vocab_list.pickle')):
             self.parse_data(parsed_files)
-        vocab_list = load_pickle(abspath('out', 'vocab_list.pickle'))
-        vocab_freq_dict = load_pickle(abspath('out', 'vocab_freq_dict.pickle'))
-        index_word_dict = load_pickle(abspath('out', 'index_word_dict.pickle'))
-        word_index_dict = load_pickle(abspath('out', 'word_index_dict.pickle'))
+        vocab_list = load_pickle(abspath(OUTPUT_DIR, 'vocab_list.pickle'))
+        vocab_freq_dict = load_pickle(abspath(OUTPUT_DIR, 'vocab_freq_dict.pickle'))
+        index_word_dict = load_pickle(abspath(OUTPUT_DIR, 'index_word_dict.pickle'))
+        word_index_dict = load_pickle(abspath(OUTPUT_DIR, 'word_index_dict.pickle'))
 
     def fetch_data(self):
         print('Retrieving data from Gutenberg corpus...')
-        train_directory = abspath('dataset', 'Gutenberg', 'txt')
+        train_directory = abspath(DATASET_DIR, 'Gutenberg', 'txt')
         # train_file_locations = [os.path.join(train_directory, f) for f in listdir(train_directory) if
         #                        isfile(join(train_directory, f)) and f != '.fuse_hidden0000465600000001']
-        # no need to check if file is there
+        # no need to check if file is there ??? doing it so that we don't grab contents of that file
         train_file_locations = [os.path.join(train_directory, f) for f in os.listdir(train_directory)]
         parsed_files = ''
         i = 0
@@ -50,7 +50,7 @@ class Parser:
             with open(file, 'r', errors='ignore') as f:
                 parsed_files += f.read()
 
-        store_pickle(parsed_files, abspath('out', 'parsed_files_fetch_data.pickle'))
+        store_pickle(parsed_files, abspath(OUTPUT_DIR, 'parsed_files_fetch_data.pickle'))
 
     def clean_data(self, parsed_files):
         print('Cleaning data...')
@@ -61,11 +61,6 @@ class Parser:
 
         # Replace all spaces with a single space
         parsed_files = ' '.join(parsed_files.split())
-
-        # Append start and end tags to every sentence
-        parsed_files = sent_tokenize(parsed_files)
-        parsed_files = ' '.join([START_TOKEN + ' ' + parsed_files[i] + ' ' + END_TOKEN
-                                 for i in range(len(parsed_files))])
 
         # Replace all tokens with a count of 10 or less with the out-of-vocabulary symbol UNK.
         parsed_files = ' ' + parsed_files + ' '  # Append spaces for easy replacement
@@ -80,7 +75,7 @@ class Parser:
         # Replace all blank sentences with a single space
         parsed_files = ' '.join(parsed_files.split(' ' + START_TOKEN + ' ' + END_TOKEN + ' '))
 
-        store_pickle(parsed_files, abspath('out', 'parsed_files_clean_data.pickle'))
+        store_pickle(parsed_files, abspath(OUTPUT_DIR, 'parsed_files_clean_data.pickle'))
 
     def parse_data(self, parsed_files):
         print('Parsing data...')
@@ -90,17 +85,28 @@ class Parser:
         index_word_dict = {}
         word_index_dict = {}
 
-        vocab_list = parsed_files.split(' ')
+        # Append start and end tags and obtain entire vocabulary as a list
+        parsed_files = word_tokenize(parsed_files)
+        vocab_list.append(START_TOKEN)
+        for word in parsed_files:
+            vocab_list.append(word)
+            if word in FULL_STOPS:
+                vocab_list.append(END_TOKEN)
+                vocab_list.append(START_TOKEN)
+        vocab_list.append(END_TOKEN)
+
         vocab_freq_dict = dict(Counter(vocab_list))
 
         for i in range(len(vocab_list)):
             index_word_dict[i] = vocab_list[i]
             word_index_dict[vocab_list[i]] = i
 
-        store_pickle(vocab_list, abspath('out', 'vocab_list.pickle'))
-        store_pickle(vocab_freq_dict, abspath('out', 'vocab_freq_dict.pickle'))
-        store_pickle(index_word_dict, abspath('out', 'index_word_dict.pickle'))
-        store_pickle(word_index_dict, abspath('out', 'word_index_dict.pickle'))
+        store_pickle(vocab_list, abspath(OUTPUT_DIR, 'vocab_list.pickle'))
+        store_pickle(vocab_freq_dict, abspath(OUTPUT_DIR, 'vocab_freq_dict.pickle'))
+        store_pickle(index_word_dict, abspath(OUTPUT_DIR, 'index_word_dict.pickle'))
+        store_pickle(word_index_dict, abspath(OUTPUT_DIR, 'word_index_dict.pickle'))
+
+
 
 
 if __name__ == '__main__':
