@@ -3,7 +3,7 @@ import os
 # from os import listdir
 # from os.path import isfile, join
 from src.utils import store_pickle, load_pickle, abspath
-from nltk import word_tokenize
+from nltk import sent_tokenize, word_tokenize
 from collections import Counter
 from src.constants import *
 
@@ -29,6 +29,7 @@ class Parser:
 
         if not os.path.isfile(abspath(OUTPUT_DIR, 'vocab_list.pickle')):
             self.parse_data(parsed_files)
+        parsed_files = load_pickle(abspath(OUTPUT_DIR, 'parsed_files.pickle'))
         vocab_list = load_pickle(abspath(OUTPUT_DIR, 'vocab_list.pickle'))
         vocab_freq_dict = load_pickle(abspath(OUTPUT_DIR, 'vocab_freq_dict.pickle'))
         index_word_dict = load_pickle(abspath(OUTPUT_DIR, 'index_word_dict.pickle'))
@@ -86,14 +87,19 @@ class Parser:
         word_index_dict = {}
 
         # Append start and end tags and obtain entire vocabulary as a list
-        parsed_files = word_tokenize(parsed_files)
         vocab_list.append(START_TOKEN)
-        for word in parsed_files:
+        for word in word_tokenize(parsed_files):
             vocab_list.append(word)
             if word in FULL_STOPS:
                 vocab_list.append(END_TOKEN)
                 vocab_list.append(START_TOKEN)
         vocab_list.append(END_TOKEN)
+
+        # Get list of list of list of words
+        parsed_files = sent_tokenize(parsed_files)
+        for i in range(len(parsed_files)):
+            parsed_files[i] = word_tokenize(parsed_files[i])
+        print(parsed_files)
 
         vocab_freq_dict = dict(Counter(vocab_list))
 
@@ -101,6 +107,7 @@ class Parser:
             index_word_dict[i] = vocab_list[i]
             word_index_dict[vocab_list[i]] = i
 
+        store_pickle(parsed_files, abspath(OUTPUT_DIR, 'parsed_files.pickle'))
         store_pickle(vocab_list, abspath(OUTPUT_DIR, 'vocab_list.pickle'))
         store_pickle(vocab_freq_dict, abspath(OUTPUT_DIR, 'vocab_freq_dict.pickle'))
         store_pickle(index_word_dict, abspath(OUTPUT_DIR, 'index_word_dict.pickle'))
