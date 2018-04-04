@@ -6,3 +6,4 @@ dataset/
 *.pickle
 *.mm
 *.index
+out/
