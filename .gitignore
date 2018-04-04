@@ -7,3 +7,4 @@ dataset/
 *.mm
 *.index
 out/
+__pycache__
