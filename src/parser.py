@@ -1,35 +1,27 @@
 # Library Imports
 import os
-# from os import listdir
-# from os.path import isfile, join
 from src.utils import store_pickle, load_pickle, abspath
-from nltk import sent_tokenize, word_tokenize
 from collections import Counter
 from src.constants import *
 
 
 class Parser:
 
-    # take filepaths as variable instead of calculating them in fetch data
-    # put constants in constants.py and use them
-    # store file locations in variable
-    # add start and end tokens after word tokenize
-    def __init__(self, filepaths, lowercase=False, min_freq=0):
+    def __init__(self, train_directory, lowercase=False, min_freq=0):
         self.lowercase = lowercase
         self.min_freq = min_freq
         print('Enter init...')
 
         if not os.path.isfile(abspath(OUTPUT_DIR, 'parsed_files_fetch_data.pickle')):
-            self.fetch_data()
+            self.fetch_data(train_directory)
         parsed_files = load_pickle(abspath(OUTPUT_DIR, 'parsed_files_fetch_data.pickle'))
 
         if not os.path.isfile(abspath(OUTPUT_DIR, 'parsed_files_clean_data.pickle')):
             self.clean_data(parsed_files)
         parsed_files = load_pickle(abspath(OUTPUT_DIR, 'parsed_files_clean_data.pickle'))
 
-    def fetch_data(self):
-        print('Retrieving data from Gutenberg corpus...')
-        train_directory = abspath(DATASET_DIR, 'Gutenberg', 'txt')
+    def fetch_data(self, train_directory):
+        print('Retrieving data from dataset...')
         # train_file_locations = [os.path.join(train_directory, f) for f in listdir(train_directory) if
         #                        isfile(join(train_directory, f)) and f != '.fuse_hidden0000465600000001']
         # no need to check if file is there ??? doing it so that we don't grab contents of that file
@@ -71,5 +63,5 @@ class Parser:
         store_pickle(parsed_files, abspath(OUTPUT_DIR, 'parsed_files_clean_data.pickle'))
 
 if __name__ == '__main__':
-    filepaths = []
-    parser = Parser(filepaths, lowercase=True, min_freq=5)
+    train_directory = abspath(DATASET_DIR, 'Gutenberg', 'txt')
+    parser = Parser(train_directory, lowercase=True, min_freq=5)
