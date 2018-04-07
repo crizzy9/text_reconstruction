@@ -173,6 +173,7 @@ class Vectorizer:
         store_pickle(self.feature_to_index, abspath(OUTPUT_DIR, FEATURES_TO_INDEX_PICKLE))
         store_pickle(self.index_to_feature, abspath(OUTPUT_DIR, INDEX_TO_FEATURES_PICKLE))
         store_pickle(self.embedding_matrix, abspath(OUTPUT_DIR, EMBEDDING_MATRIX_PICKLE))
+        store_pickle(self.indexed_corpus, abspath(OUTPUT_DIR, INDEX_CORPUS_PICKLE))
 
 
 if __name__ == '__main__':
