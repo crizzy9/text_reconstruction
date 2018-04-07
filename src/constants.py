@@ -4,4 +4,7 @@ UNKNOWN_TOKEN = '<unk>'
 OUTPUT_DIR = 'out'
 MODEL_DIR = 'model'
 DATASET_DIR = 'dataset'
+DATASET_FOLDER = 'Gutenberg'
+FETCH_DATA_PICKLE = '_parsed_files_fetch_data.pickle'
+CLEAN_DATA_PICKLE = '_parsed_files_clean_data.pickle'
 FULL_STOPS = ['.', '!', '?']
