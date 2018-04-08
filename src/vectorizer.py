@@ -214,9 +214,10 @@ class Vectorizer:
 
 
 if __name__ == '__main__':
-    cps = [[['This', 'is', 'awesome', 'what', 'is', 'this', 'buddy', '.'], 'Ashton gave Aditya a punch at the Hockey Stadium .'.split(), 'Votercirlce and Micromax merge to create the new Canvas2 .'.split(), ['I', 'am', 'really', 'nervous', 'i', 'dont', 'know', 'what', 'to', 'do', '.']], ['It was raining a lot yesterday and i got completely drenched .'.split(), 'Is there any other way to do this'.split(), 'What is this dude i am so upset please dont do this man'.split()]]
-    # parsed_data = load_pickle(abspath('out', DATASET_FOLDER + CLEAN_DATA_PICKLE))
+    # parsed_data = load_pickle(abspath('out', CLEAN_DATA_PICKLE))
     # corpus = parsed_data[:100]
+
+    # cps = [[['This', 'is', 'awesome', 'what', 'is', 'this', 'buddy', '.'], 'Ashton gave Aditya a punch at the Hockey Stadium .'.split(), 'Votercirlce and Micromax merge to create the new Canvas2 .'.split(), ['I', 'am', 'really', 'nervous', 'i', 'dont', 'know', 'what', 'to', 'do', '.']], ['It was raining a lot yesterday and i got completely drenched .'.split(), 'Is there any other way to do this'.split(), 'What is this dude i am so upset please dont do this man'.split()]]
     # vectorizer = Vectorizer(cps, 0)
 
     max_sentence_len = 48
@@ -234,6 +235,7 @@ if __name__ == '__main__':
                 break
 
     vectorizer = Vectorizer([corpus], 3)
+
     vectorizer.process_corpus()
     vectorizer.extract_info()
     vectorizer.convert_to_vectors()
