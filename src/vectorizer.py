@@ -9,9 +9,10 @@ from src.constants import *
 
 class Vectorizer:
     # corpus will be parsed and in the format [[[words] sentences/paragraphs] documents]
-    def __init__(self, corpus):
+    def __init__(self, corpus, min_freq=0):
         # word freqs and all could be given from parser
         self.corpus = corpus
+        self.min_freq = min_freq
         self.corpus_pos_tags = []
         self.corpus_ner_tags = []
         self.all_pos_tags = set()
@@ -34,6 +35,32 @@ class Vectorizer:
         self.indexed_corpus = []
         self.embedding_matrix = []
 
+    def process_corpus(self):
+        for i in range(len(self.corpus)):
+            for j in range(len(self.corpus[i])):
+                self.corpus[i][j].insert(0, START_TOKEN)
+                self.corpus[i][j].append(END_TOKEN)
+                self.word_freq.update(self.corpus[i][j])
+
+        # replacing min freq with UNK
+        for i in range(len(self.corpus)):
+            for j in range(len(self.corpus[i])):
+                for k in range(len(self.corpus[i][j])):
+                    word = self.corpus[i][j][k]
+                    if self.word_freq.get(word) <= self.min_freq:
+                        self.corpus[i][j][k] = UNKNOWN_TOKEN
+
+        unknowns = [k for k, v in self.word_freq.items() if v <= self.min_freq]
+        self.word_freq.update({UNKNOWN_TOKEN: sum([self.word_freq.get(u) for u in unknowns])})
+        for u in unknowns:
+            del self.word_freq[u]
+        self.vocabulary = list(self.word_freq.keys())
+        self.index_to_word = dict(enumerate(self.vocabulary))
+        self.word_to_index = {v: k for k, v in self.index_to_word.items()}
+
+        print(self.vocabulary)
+        print(self.word_freq)
+
     def extract_info(self):
         for doc in self.corpus:
             pos_tags = list(nltk.pos_tag_sents(doc))
@@ -48,7 +75,6 @@ class Vectorizer:
                         self.all_ner_tags.add(ner_tag)
                         for word, tag in node:
                             self.all_pos_tags.add(tag)
-                            self.word_freq.update([word])
                             self.features.add((word, tag, ner_tag))
                     else:
                         # extract pos tags
@@ -57,12 +83,8 @@ class Vectorizer:
                         pos_tag = node[1]
                         self.all_ner_tags.add(ner_tag)
                         self.all_pos_tags.add(pos_tag)
-                        self.word_freq.update([word])
                         self.features.add((word, pos_tag, ner_tag))
 
-        self.vocabulary = self.word_freq.keys()
-        self.index_to_word = dict(enumerate(self.vocabulary))
-        self.word_to_index = {v: k for k, v in self.index_to_word.items()}
         self.index_to_pos = dict(enumerate(self.all_pos_tags))
         self.pos_to_index = {v: k for k, v in self.index_to_pos.items()}
         self.index_to_ner = dict(enumerate(self.all_ner_tags))
@@ -104,7 +126,7 @@ class Vectorizer:
         # print("Feature to index")
         # print(self.feature_to_index)
 
-    def convert_to_vectors(self, min_freq=0):
+    def convert_to_vectors(self):
         word2vec_size = 128
         pos2vec_size = 50
         ner2vec_size = 20
@@ -125,7 +147,7 @@ class Vectorizer:
             tag_index = self.ner_to_index.get(tag)
             self.ner_vectors.append([1 if i == tag_index else 0 for i in range(n_ner_tags)])
 
-        model = word2vec.Word2Vec([sent for doc in self.corpus for sent in doc], iter=20, min_count=min_freq, size=word2vec_size, workers=4)
+        model = word2vec.Word2Vec([sent for doc in self.corpus for sent in doc], iter=20, min_count=self.min_freq, size=word2vec_size, workers=4)
         for i in range(len(self.vocabulary)):
             vector = model.wv[self.index_to_word.get(i)]
             if vector is not None:
@@ -183,7 +205,8 @@ if __name__ == '__main__':
     with open(abspath(DATASET_DIR, 'data', 'train.en'), 'r') as f:
         parsed_data = f.readlines()
     corpus = [sent.split() for sent in parsed_data]
-    vectorizer = Vectorizer([corpus])
+    vectorizer = Vectorizer([corpus], 5)
+    vectorizer.process_corpus()
     vectorizer.extract_info()
     vectorizer.convert_to_vectors()
     vectorizer.generate_vectors()
