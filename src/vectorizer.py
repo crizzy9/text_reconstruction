@@ -206,22 +206,34 @@ class Vectorizer:
         print(self.embedding_matrix.shape)
 
     def save_data(self):
-        store_pickle(self.vocabulary, abspath(OUTPUT_DIR, VOCAB_PICKLE))
-        store_pickle(self.feature_to_index, abspath(OUTPUT_DIR, FEATURES_TO_INDEX_PICKLE))
-        store_pickle(self.index_to_feature, abspath(OUTPUT_DIR, INDEX_TO_FEATURES_PICKLE))
-        store_pickle(self.embedding_matrix, abspath(OUTPUT_DIR, EMBEDDING_MATRIX_PICKLE))
-        store_pickle(self.indexed_corpus, abspath(OUTPUT_DIR, INDEX_CORPUS_PICKLE))
+        store_pickle(self.vocabulary, abspath(OUTPUT_DIR, 'vect', VOCAB_PICKLE))
+        store_pickle(self.feature_to_index, abspath(OUTPUT_DIR, 'vect', FEATURES_TO_INDEX_PICKLE))
+        store_pickle(self.index_to_feature, abspath(OUTPUT_DIR, 'vect', INDEX_TO_FEATURES_PICKLE))
+        store_pickle(self.embedding_matrix, abspath(OUTPUT_DIR, 'vect', EMBEDDING_MATRIX_PICKLE))
+        store_pickle(self.indexed_corpus, abspath(OUTPUT_DIR, 'vect', INDEX_CORPUS_PICKLE))
 
 
 if __name__ == '__main__':
     cps = [[['This', 'is', 'awesome', 'what', 'is', 'this', 'buddy', '.'], 'Ashton gave Aditya a punch at the Hockey Stadium .'.split(), 'Votercirlce and Micromax merge to create the new Canvas2 .'.split(), ['I', 'am', 'really', 'nervous', 'i', 'dont', 'know', 'what', 'to', 'do', '.']], ['It was raining a lot yesterday and i got completely drenched .'.split(), 'Is there any other way to do this'.split(), 'What is this dude i am so upset please dont do this man'.split()]]
     # parsed_data = load_pickle(abspath('out', DATASET_FOLDER + CLEAN_DATA_PICKLE))
     # corpus = parsed_data[:100]
-    # with open(abspath(DATASET_DIR, 'data', 'train.en'), 'r') as f:
-    #     parsed_data = f.readlines()
-    # corpus = [sent.split() for sent in parsed_data]
-    # vectorizer = Vectorizer([corpus], 5)
-    vectorizer = Vectorizer(cps, 0)
+    # vectorizer = Vectorizer(cps, 0)
+
+    max_sentence_len = 48
+    max_num_sents = 50000
+    corpus = []
+    with open(abspath(OUTPUT_DIR, 'data', 'train.en'), 'r') as f:
+        parsed_data = f.readlines()
+        count = 0
+        for line in parsed_data:
+            sent = line.split()
+            if len(sent) < max_sentence_len:
+                count += 1
+                corpus.append(sent)
+            if count >= max_num_sents:
+                break
+
+    vectorizer = Vectorizer([corpus], 3)
     vectorizer.process_corpus()
     vectorizer.extract_info()
     vectorizer.convert_to_vectors()
