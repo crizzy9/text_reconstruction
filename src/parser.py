@@ -2,6 +2,7 @@
 from src.utils import *
 from collections import Counter
 from src.constants import *
+from nltk import sent_tokenize
 
 
 class Parser:
@@ -45,14 +46,17 @@ class Parser:
     def clean_data(self, parsed_files):
         print('Cleaning data...')
 
-        # Convert to lower case if Modes.lowercase is 1
         if self.lowercase:
             parsed_files = parsed_files.lower()
 
         # Replace all spaces with a single space
         parsed_files = ' '.join(parsed_files.split())
 
-        # Replace all tokens with a count of 10 or less with the out-of-vocabulary symbol UNK.
+        # Add START and STOP tags around sentences
+        parsed_files = sent_tokenize(parsed_files)
+        parsed_files = ' '.join([START_TOKEN + ' ' + parsed_files[i] + ' ' + END_TOKEN for i in range(len(parsed_files))])
+
+        # Replace all tokens with a count of min_freq or less with the out-of-vocabulary symbol UNK.
         parsed_files = ' ' + parsed_files + ' '  # Append spaces for easy replacement
         for key, value in Counter(parsed_files.split(' ')).items():
             if value < self.min_freq:
