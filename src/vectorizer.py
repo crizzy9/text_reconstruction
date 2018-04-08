@@ -75,7 +75,10 @@ class Vectorizer:
                         self.all_ner_tags.add(ner_tag)
                         for word, tag in node:
                             self.all_pos_tags.add(tag)
-                            self.features.add((word, tag, ner_tag))
+                            if word != START_TOKEN and word != END_TOKEN:
+                                self.features.add((word, tag, ner_tag))
+                            else:
+                                self.features.add((word, 'None', 'None'))
                     else:
                         # extract pos tags
                         ner_tag = 'None'
@@ -83,7 +86,10 @@ class Vectorizer:
                         pos_tag = node[1]
                         self.all_ner_tags.add(ner_tag)
                         self.all_pos_tags.add(pos_tag)
-                        self.features.add((word, pos_tag, ner_tag))
+                        if word != START_TOKEN and word != END_TOKEN:
+                            self.features.add((word, pos_tag, ner_tag))
+                        else:
+                            self.features.add((word, 'None', 'None'))
 
         self.index_to_pos = dict(enumerate(self.all_pos_tags))
         self.pos_to_index = {v: k for k, v in self.index_to_pos.items()}
