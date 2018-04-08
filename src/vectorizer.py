@@ -16,7 +16,9 @@ class Vectorizer:
         self.corpus_pos_tags = []
         self.corpus_ner_tags = []
         self.all_pos_tags = set()
+        self.all_pos_tags.add('None')
         self.all_ner_tags = set()
+        self.all_ner_tags.add('None')
         self.word_freq = Counter()
         self.vocabulary = []
         self.word_to_index = {}
@@ -42,18 +44,20 @@ class Vectorizer:
                 self.corpus[i][j].append(END_TOKEN)
                 self.word_freq.update(self.corpus[i][j])
 
-        # replacing min freq with UNK
-        for i in range(len(self.corpus)):
-            for j in range(len(self.corpus[i])):
-                for k in range(len(self.corpus[i][j])):
-                    word = self.corpus[i][j][k]
-                    if self.word_freq.get(word) <= self.min_freq:
-                        self.corpus[i][j][k] = UNKNOWN_TOKEN
+        if self.min_freq > 0:
+            # replacing min freq with UNK
+            for i in range(len(self.corpus)):
+                for j in range(len(self.corpus[i])):
+                    for k in range(len(self.corpus[i][j])):
+                        word = self.corpus[i][j][k]
+                        if self.word_freq.get(word) <= self.min_freq:
+                            self.corpus[i][j][k] = UNKNOWN_TOKEN
 
-        unknowns = [k for k, v in self.word_freq.items() if v <= self.min_freq]
-        self.word_freq.update({UNKNOWN_TOKEN: sum([self.word_freq.get(u) for u in unknowns])})
-        for u in unknowns:
-            del self.word_freq[u]
+            unknowns = [k for k, v in self.word_freq.items() if v <= self.min_freq]
+            self.word_freq.update({UNKNOWN_TOKEN: sum([self.word_freq.get(u) for u in unknowns])})
+            for u in unknowns:
+                del self.word_freq[u]
+
         self.vocabulary = list(self.word_freq.keys())
         self.index_to_word = dict(enumerate(self.vocabulary))
         self.word_to_index = {v: k for k, v in self.index_to_word.items()}
@@ -84,7 +88,6 @@ class Vectorizer:
                         ner_tag = 'None'
                         word = node[0]
                         pos_tag = node[1]
-                        self.all_ner_tags.add(ner_tag)
                         self.all_pos_tags.add(pos_tag)
                         if word != START_TOKEN and word != END_TOKEN:
                             self.features.add((word, pos_tag, ner_tag))
@@ -166,7 +169,7 @@ class Vectorizer:
         # print("Word vectors")
         # print(self.word_vectors)
 
-    def generate_vectors(self):
+    def corpus_to_index(self):
         for doc_ner_tags in self.corpus_ner_tags:
             doc_indices = []
             for sent in doc_ner_tags:
@@ -176,12 +179,18 @@ class Vectorizer:
                         ner_tag = node.label()
                         for word, tag in node:
                             # what to do with ngram with ner how to add all pos tags if adding ngram in index?
-                            sent_indices.append(self.feature_to_index.get((word, tag, ner_tag)))
+                            if word != START_TOKEN and word != END_TOKEN:
+                                sent_indices.append(self.feature_to_index.get((word, tag, ner_tag)))
+                            else:
+                                sent_indices.append(self.feature_to_index.get((word, 'None', 'None')))
                     else:
                         ner_tag = 'None'
                         word = node[0]
                         pos_tag = node[1]
-                        sent_indices.append(self.feature_to_index.get((word, pos_tag, ner_tag)))
+                        if word != START_TOKEN and word != END_TOKEN:
+                            sent_indices.append(self.feature_to_index.get((word, pos_tag, ner_tag)))
+                        else:
+                            sent_indices.append(self.feature_to_index.get((word, 'None', 'None')))
                 doc_indices.append(sent_indices)
             self.indexed_corpus.append(doc_indices)
         print("INDEXED CORPUS")
@@ -205,16 +214,17 @@ class Vectorizer:
 
 
 if __name__ == '__main__':
-    # cps = [[['This', 'is', 'awesome', 'what', 'is', 'this', 'buddy', '.'], 'Ashton gave Aditya a punch at the Hockey Stadium .'.split(), 'Votercirlce and Micromax merge to create the new Canvas2 .'.split(), ['I', 'am', 'really', 'nervous', 'i', 'dont', 'know', 'what', 'to', 'do', '.']], ['It was raining a lot yesterday and i got completely drenched .'.split(), 'Is there any other way to do this'.split(), 'What is this dude i am so upset please dont do this man'.split()]]
+    cps = [[['This', 'is', 'awesome', 'what', 'is', 'this', 'buddy', '.'], 'Ashton gave Aditya a punch at the Hockey Stadium .'.split(), 'Votercirlce and Micromax merge to create the new Canvas2 .'.split(), ['I', 'am', 'really', 'nervous', 'i', 'dont', 'know', 'what', 'to', 'do', '.']], ['It was raining a lot yesterday and i got completely drenched .'.split(), 'Is there any other way to do this'.split(), 'What is this dude i am so upset please dont do this man'.split()]]
     # parsed_data = load_pickle(abspath('out', DATASET_FOLDER + CLEAN_DATA_PICKLE))
     # corpus = parsed_data[:100]
-    with open(abspath(DATASET_DIR, 'data', 'train.en'), 'r') as f:
-        parsed_data = f.readlines()
-    corpus = [sent.split() for sent in parsed_data]
-    vectorizer = Vectorizer([corpus], 5)
+    # with open(abspath(DATASET_DIR, 'data', 'train.en'), 'r') as f:
+    #     parsed_data = f.readlines()
+    # corpus = [sent.split() for sent in parsed_data]
+    # vectorizer = Vectorizer([corpus], 5)
+    vectorizer = Vectorizer(cps, 0)
     vectorizer.process_corpus()
     vectorizer.extract_info()
     vectorizer.convert_to_vectors()
-    vectorizer.generate_vectors()
+    vectorizer.corpus_to_index()
     vectorizer.create_embedding_matrix()
     vectorizer.save_data()
