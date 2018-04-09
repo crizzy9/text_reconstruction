@@ -71,6 +71,7 @@ class Vectorizer:
             self.corpus_pos_tags.append(pos_tags)
             ner_tags = list(nltk.ne_chunk_sents(pos_tags))
             self.corpus_ner_tags.append(ner_tags)
+            print("Got ner tags")
             for sent in ner_tags:
                 for node in sent:
                     if type(node) == nltk.Tree:
@@ -214,25 +215,26 @@ class Vectorizer:
 
 
 if __name__ == '__main__':
-    # parsed_data = load_pickle(abspath('out', CLEAN_DATA_PICKLE))
+    corpus = load_pickle(abspath('out', CLEAN_DATA_PICKLE))
     # corpus = parsed_data[:100]
 
-    # cps = [[['This', 'is', 'awesome', 'what', 'is', 'this', 'buddy', '.'], 'Ashton gave Aditya a punch at the Hockey Stadium .'.split(), 'Votercirlce and Micromax merge to create the new Canvas2 .'.split(), ['I', 'am', 'really', 'nervous', 'i', 'dont', 'know', 'what', 'to', 'do', '.']], ['It was raining a lot yesterday and i got completely drenched .'.split(), 'Is there any other way to do this'.split(), 'What is this dude i am so upset please dont do this man'.split()]]
+    # cps = [[['This', 'is', 'awesome', 'what', 'is', 'this', 'buddy', '.'], 'Ashton gave Aditya a punch at the Hockey Stadium .'.split(), ['I', 'am', 'really', 'nervous', 'i', 'dont', 'know', 'what', 'to', 'do', '.']], ['It was raining a lot yesterday and i got completely drenched .'.split(), 'Is there any other way to do this'.split(), 'What is this dude i am so upset please dont do this man'.split()]]
     # vectorizer = Vectorizer(cps, 0)
 
-    max_sentence_len = 48
-    max_num_sents = 50000
-    corpus = []
-    with open(abspath(OUTPUT_DIR, 'data', 'train.en'), 'r') as f:
-        parsed_data = f.readlines()
-        count = 0
-        for line in parsed_data:
-            sent = line.split()
-            if len(sent) < max_sentence_len:
-                count += 1
-                corpus.append(sent)
-            if count >= max_num_sents:
-                break
+    # max_sentence_len = 48
+    # max_num_sents = 50000
+    # corpus = []
+    # with open(abspath(OUTPUT_DIR, 'data', 'train.en'), 'r') as f:
+    #     parsed_data = f.readlines()
+    #     count = 0
+    #     for line in parsed_data:
+    #         sent = line.split()
+    #         if len(sent) < max_sentence_len:
+    #             count += 1
+    #             corpus.append(sent)
+    #         if count >= max_num_sents:
+    #             break
+
 
     vectorizer = Vectorizer([corpus], 3)
 
