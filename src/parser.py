@@ -65,7 +65,7 @@ class Parser:
         file_count = 0
         for file in parsed_files:
             file_count += 1
-            print("Tokenizing file: {}/{}\t".format(file_count, len(parsed_files)))
+            print("\rTokenizing file: {}/{}\t".format(file_count, len(parsed_files)), end='')
             if paragraphs:
                 count = 0
                 for para in file:
@@ -84,7 +84,7 @@ class Parser:
             else:
                 for sent in sent_tokenize(file):
                     words = word_tokenize(sent)
-                    if len(words) <= max_words:
+                    if min_words <= len(words) <= max_words:
                         data.append(words)
 
         # parsed_files = ' '.join([START_TOKEN + ' ' + parsed_files[i] + ' ' + END_TOKEN for i in range(len(parsed_files))])
@@ -109,4 +109,4 @@ class Parser:
         store_pickle(data, abspath(OUTPUT_DIR, CLEAN_DATA_PICKLE))
 
 if __name__ == '__main__':
-    parser = Parser(train_directory=abspath(DATASET_DIR), lowercase=False, paragraphs=True, no_of_files=4000)
+    parser = Parser(train_directory=abspath(DATASET_DIR), lowercase=False, paragraphs=False, no_of_files=4000)

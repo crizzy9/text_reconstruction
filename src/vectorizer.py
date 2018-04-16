@@ -64,14 +64,32 @@ class Vectorizer:
         self.index_to_word = dict(enumerate(self.vocabulary))
         self.word_to_index = {v: k for k, v in self.index_to_word.items()}
 
-        print(self.vocabulary)
-        print(self.word_freq)
+        # print(self.vocabulary)
+        # print(self.word_freq)
 
     def extract_info(self):
+        fcount = 1
+        batch_size = 10000
         for doc in self.corpus:
-            pos_tags = list(nltk.pos_tag_sents(doc))
+            print("Processing file", fcount)
+            fcount += 1
+            sent_count = len(doc)
+            pos_tags = []
+            ner_tags = []
+            inds = [x for x in range(0, sent_count+1, batch_size)]
+            inds.append(sent_count) if sent_count % batch_size != 0 else None
+            batches = [(inds[r - 1], inds[r]) for r in range(1, len(inds))]
+            # print(batches)
+            print("Total number of batches: {}, Total number of docs: {}".format(len(batches), batches[-1][1]))
+            for b in batches:
+                print("\rCurrent batch: {} - {}".format(b[0], b[1]), end='')
+                sents = doc[b[0]:b[1]]
+                pt = list(nltk.pos_tag_sents(sents))
+                nt = list(nltk.ne_chunk_sents(pt))
+                pos_tags.extend(pt)
+                ner_tags.extend(nt)
+
             self.corpus_pos_tags.append(pos_tags)
-            ner_tags = list(nltk.ne_chunk_sents(pos_tags))
             self.corpus_ner_tags.append(ner_tags)
             print("Got the TAGS!")
             for sent in ner_tags:
@@ -129,8 +147,8 @@ class Vectorizer:
         #     for y in x:
         #         print(y)
         #
-        print("Features")
-        print(self.features)
+        # print("Features")
+        # print(self.features)
         print("features len")
         print(len(self.features))
         # print("Index to feature")
