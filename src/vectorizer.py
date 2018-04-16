@@ -36,12 +36,14 @@ class Vectorizer:
         self.feature_vectors = []
         self.indexed_corpus = []
         self.embedding_matrix = []
+        self.feature_to_embedding = []
 
-    def process_corpus(self):
+    def process_corpus(self, start_end_tags=True):
         for i in range(len(self.corpus)):
             for j in range(len(self.corpus[i])):
-                self.corpus[i][j].insert(0, START_TOKEN)
-                self.corpus[i][j].append(END_TOKEN)
+                if start_end_tags:
+                    self.corpus[i][j].insert(0, START_TOKEN)
+                    self.corpus[i][j].append(END_TOKEN)
                 self.word_freq.update(self.corpus[i][j])
 
         if self.min_freq > 0:
@@ -71,7 +73,7 @@ class Vectorizer:
             self.corpus_pos_tags.append(pos_tags)
             ner_tags = list(nltk.ne_chunk_sents(pos_tags))
             self.corpus_ner_tags.append(ner_tags)
-            print("Got ner tags")
+            print("Got the TAGS!")
             for sent in ner_tags:
                 for node in sent:
                     if type(node) == nltk.Tree:
@@ -202,16 +204,18 @@ class Vectorizer:
         for word, pos_tag, ner_tag in self.features:
             self.embedding_matrix.append(np.concatenate([self.word_vectors[self.word_to_index.get(word)], self.pos_vectors[self.pos_to_index.get(pos_tag)], self.ner_vectors[self.ner_to_index.get(ner_tag)], [self.word_freq.get(word)/corpus_size]]))
         self.embedding_matrix = np.array(self.embedding_matrix)
+        self.feature_to_embedding = {k: self.embedding_matrix[v] for k, v in self.feature_to_index.items()}
         print("EMBEDDING MATRIX")
         print(self.embedding_matrix)
         print(self.embedding_matrix.shape)
 
     def save_data(self):
-        store_pickle(self.vocabulary, abspath(OUTPUT_DIR, 'vect', VOCAB_PICKLE))
-        store_pickle(self.feature_to_index, abspath(OUTPUT_DIR, 'vect', FEATURES_TO_INDEX_PICKLE))
-        store_pickle(self.index_to_feature, abspath(OUTPUT_DIR, 'vect', INDEX_TO_FEATURES_PICKLE))
-        store_pickle(self.embedding_matrix, abspath(OUTPUT_DIR, 'vect', EMBEDDING_MATRIX_PICKLE))
-        store_pickle(self.indexed_corpus, abspath(OUTPUT_DIR, 'vect', INDEX_CORPUS_PICKLE))
+        store_pickle(self.vocabulary, abspath(OUTPUT_DIR, VECTOR_OUTPUT, VOCAB_PICKLE))
+        store_pickle(self.feature_to_index, abspath(OUTPUT_DIR, VECTOR_OUTPUT, FEATURES_TO_INDEX_PICKLE))
+        store_pickle(self.index_to_feature, abspath(OUTPUT_DIR, VECTOR_OUTPUT, INDEX_TO_FEATURES_PICKLE))
+        store_pickle(self.feature_to_embedding, abspath(OUTPUT_DIR, VECTOR_OUTPUT, FEATURES_TO_EMBEDDINGS_PICKLE))
+        store_pickle(self.embedding_matrix, abspath(OUTPUT_DIR, VECTOR_OUTPUT, EMBEDDING_MATRIX_PICKLE))
+        store_pickle(self.indexed_corpus, abspath(OUTPUT_DIR, VECTOR_OUTPUT, INDEX_CORPUS_PICKLE))
 
 
 if __name__ == '__main__':
@@ -238,7 +242,7 @@ if __name__ == '__main__':
 
     vectorizer = Vectorizer([corpus], 3)
 
-    vectorizer.process_corpus()
+    vectorizer.process_corpus(start_end_tags=False)
     vectorizer.extract_info()
     vectorizer.convert_to_vectors()
     vectorizer.corpus_to_index()
