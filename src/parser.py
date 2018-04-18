@@ -77,30 +77,11 @@ class Parser:
                             continue
                         count += 1
                         data.append(words)
-                print("Para count for file {} < {}".format(count, max_sents))
-                if file_count == 1:
-                    print("CONTENTS")
-                    print(data)
             else:
                 for sent in sent_tokenize(file):
                     words = word_tokenize(sent)
                     if min_words <= len(words) <= max_words:
                         data.append(words)
-
-        # parsed_files = ' '.join([START_TOKEN + ' ' + parsed_files[i] + ' ' + END_TOKEN for i in range(len(parsed_files))])
-
-        # Replace all tokens with a count of min_freq or less with the out-of-vocabulary symbol UNK.
-        # parsed_files = ' ' + parsed_files + ' '  # Append spaces for easy replacement
-        # for key, value in Counter(parsed_files.split(' ')).items():
-        #     if value < self.min_freq:
-        #         parsed_files = parsed_files.replace(' ' + key + ' ', ' ' + UNKNOWN_TOKEN + ' ')
-        #         parsed_files = parsed_files.replace(' ' + key + ' ', ' ' + UNKNOWN_TOKEN + ' ')  # For multiple consecutive occurrences
-
-        # Replace all spaces with a single space
-        # parsed_files = ' '.join(parsed_files.split())
-
-        # Replace all blank sentences with a single space
-        # parsed_files = ' '.join(parsed_files.split(' ' + START_TOKEN + ' ' + END_TOKEN + ' '))
 
         print("Total no of {} < {} = {}".format('paragraphs' if paragraphs else 'sentences', max_sents if paragraphs else max_words, len(data)))
         data = data[:limit]
@@ -109,4 +90,4 @@ class Parser:
         store_pickle(data, abspath(OUTPUT_DIR, CLEAN_DATA_PICKLE))
 
 if __name__ == '__main__':
-    parser = Parser(train_directory=abspath(DATASET_DIR), lowercase=False, paragraphs=False, no_of_files=4000)
+    parser = Parser(train_directory=abspath(DATASET_DIR), lowercase=False, paragraphs=False, no_of_files=1000, limit=50000)
