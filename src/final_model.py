@@ -114,7 +114,6 @@ with tf.Session() as sess:
         sequence_length=input_sequence_length,
         inputs=embedded_inputs)
 
-    ########################## Decoder #######################
 
     attention_mechanism = tf.contrib.seq2seq.LuongAttention(
         64, encoder_output, memory_sequence_length=input_sequence_length, dtype=tf.float64)
@@ -142,19 +141,15 @@ with tf.Session() as sess:
         decoder_cell, helper, decoder_initial_state,
         output_layer=projection_layer)
 
-    """Dnamic decoder"""
 
     outputs, output_states, output_seq_length = tf.contrib.seq2seq.dynamic_decode(
         decoder, output_time_major=False,
         swap_memory=False
     )
 
-    ########################## Loss and back propogation #######################
 
-    # # calculate loss
     logits = outputs.rnn_output
 
-    # print("loggiiiittts :", logits.shape)
     crossent = tf.nn.sparse_softmax_cross_entropy_with_logits(
         labels=label_index, logits=logits)
     train_loss = (tf.reduce_sum(crossent
@@ -166,7 +161,6 @@ with tf.Session() as sess:
     learning_rate = tf.train.exponential_decay(
         0.03, global_step, decay_steps=10, decay_rate=0.9, staircase=True)
 
-    # with tf.variable_scope('Adam'):
     adam_optimizer = tf.train.AdamOptimizer(learning_rate)
 
     adam_gradients, v = zip(*adam_optimizer.compute_gradients(train_loss))
@@ -174,33 +168,10 @@ with tf.Session() as sess:
     adam_optimize = adam_optimizer.apply_gradients(zip(adam_gradients, v))
     train_prediction = outputs.sample_id
 
-    ########################## inference #######################
-
-    # def get_embeding(ids):
-    #     return tf.nn.embedding_lookup(
-    #         summary_emb_mat, ids)
-    #
-    #
-    # infer_helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
-    #     get_embeding, [sos_id for _ in range(batch_size)], eos_id)
-    #
-    # infer_decoder = tf.contrib.seq2seq.BasicDecoder(
-    #     decoder_cell, infer_helper, encoder_state,
-    #     output_layer=projection_layer)
-    #
-    # infer_outputs = tf.contrib.seq2seq.dynamic_decode(
-    #     infer_decoder, output_time_major=False,
-    #     swap_memory=False
-    # )
-    #
-    # infer_prediction = infer_outputs[0].sample_id
-
-    ################# Training #####################
 
     sess.run(tf.global_variables_initializer())
 
     average_loss = 0
-    print("About to train")
     for epoch in range(100):
         epoch_start = time.time()
         sess.run(iterator.initializer, feed_dict=None)
@@ -216,12 +187,7 @@ with tf.Session() as sess:
                 x = reverse_vocab.lookup(tf.constant(pred, tf.int64))
                 y = reverse_vocab.lookup(tf.constant(o_i, tf.int64))
 
-                #print("label ::", o_i)
-                #print("target input ::", t_i)
-                #for i in sess.run(y):
-                #  print(i)
-                #  print(len(i))
-                #print("predictions")
+        
                 for i in enc_out:
                    encoder_out_list.append(i)
 
@@ -234,9 +200,7 @@ with tf.Session() as sess:
                 for i in sess.run(x):
                     losses.append(l)
                 
- 
-                #print([[word for word in x] for x in sess.run(x)])
-              
+               
             average_loss += l;
             
             if step == 0 or step %1000 == 0:
@@ -244,16 +208,7 @@ with tf.Session() as sess:
             if step % 100 == 0:
                 print(".", step)
 
-            #if step % 100 == 0:
-                #x = reverse_vocab.lookup(tf.constant(pred, tf.int64))
-                #y = reverse_vocab.lookup(tf.constant(o_i, tf.int64))
-
-                #print("label ::", o_i)
-                #print("target input ::", t_i)
-                #print("original")
-                #print([[word for word in i] for i in sess.run(y)])
-                #print("predictions")
-                #print([[word for word in x] for x in sess.run(x)])
+      
         if len(labels) != 0:
             with open(out_dir+"{}_labels.txt".format(epoch), "w") as fp:
                 for line in labels:
@@ -273,4 +228,4 @@ with tf.Session() as sess:
             
         saver = tf.train.Saver()
         save_path = saver.save(sess, out_dir+"model.ckpt")
-        print("Epoch::", epoch, "average loss::", average_loss / 1000, "time_taken::", time.time()-epoch_start)
+        print("Current Epoch::", epoch, "average loss::", average_loss / 1000, "time_taken::", time.time()-epoch_start)
